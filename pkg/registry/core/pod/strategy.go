@@ -960,3 +960,13 @@ func apparmorFieldForAnnotation(annotation string) *api.AppArmorProfile {
 	// length or if the annotation has an unrecognized value
 	return nil
 }
+
+func CheckpointLocation(
+	ctx context.Context,
+	getter ResourceGetter,
+	connInfo client.ConnectionInfoGetter,
+	name string,
+	opts *api.ContainerCheckpointOptions,
+) (*url.URL, http.RoundTripper, error) {
+	return streamLocation(ctx, getter, connInfo, name, opts, "", "checkpoint")
+}

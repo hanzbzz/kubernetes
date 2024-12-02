@@ -888,6 +888,15 @@ message Container {
   optional bool tty = 18;
 }
 
+// ContainerCheckpointOptions is the query options to a Pod's checkpoint call
+message ContainerCheckpointOptions {
+  // Pod with the container to be checkpointed
+  optional string pod = 1;
+
+  // Contaitner that should be checkpointed
+  optional string container = 2;
+}
+
 // Describe a container image
 message ContainerImage {
   // Names by which this image is known.

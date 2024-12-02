@@ -96,6 +96,7 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&RangeAllocation{},
 		&ConfigMap{},
 		&ConfigMapList{},
+		&ContainerCheckpointOptions{},
 	)
 
 	return nil

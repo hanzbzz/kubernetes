@@ -6770,3 +6770,15 @@ type ImageVolumeSource struct {
 	// +optional
 	PullPolicy PullPolicy
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// ContainerCheckpointOptions is the query option to checkpoint a container inside a Pod
+type ContainerCheckpointOptions struct {
+	metav1.TypeMeta
+	// Pod with the container to be checkpointed
+	Pod string
+
+	// Container that should be checkpointed
+	Container string
+}

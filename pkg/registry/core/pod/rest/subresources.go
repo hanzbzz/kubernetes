@@ -250,6 +250,51 @@ func (r *PortForwardREST) Connect(ctx context.Context, name string, opts runtime
 	return handler, nil
 }
 
+// CheckpointREST implements the checkpoint subresource for a Container in a Pod
+type CheckpointREST struct {
+	Store       *genericregistry.Store
+	KubeletConn client.ConnectionInfoGetter
+}
+
+// Implement Connecter
+var _ = rest.Connecter(&CheckpointREST{})
+
+// New returns an empty ContainerCheckpointOptions object
+func (r *CheckpointREST) New() runtime.Object {
+	return &api.ContainerCheckpointOptions{}
+}
+
+// NewConnectOptions returns the versioned object that represents the
+// checkpoint parameters
+func (r *CheckpointREST) NewConnectOptions() (runtime.Object, bool, string) {
+	return &api.ContainerCheckpointOptions{}, false, ""
+}
+
+// ConnectMethods returns the methods supported by checkpoint
+func (r *CheckpointREST) ConnectMethods() []string {
+	return []string{"POST"}
+}
+
+// Destroy cleans up resources on shutdown.
+func (r *CheckpointREST) Destroy() {
+	// Given that underlying store is shared with REST,
+	// we don't destroy it here explicitly.
+}
+
+// Connect returns a handler for the pod portforward proxy
+func (r *CheckpointREST) Connect(ctx context.Context, name string, opts runtime.Object, responder rest.Responder) (http.Handler, error) {
+	checkpointOpts, ok := opts.(*api.ContainerCheckpointOptions)
+	if !ok {
+		return nil, fmt.Errorf("invalid options object: %#v", opts)
+	}
+	location, transport, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, checkpointOpts)
+
+	if err != nil {
+		return nil, err
+	}
+	return newThrottledUpgradeAwareProxyHandler(location, transport, false, true, responder), nil
+}
+
 func newThrottledUpgradeAwareProxyHandler(location *url.URL, transport http.RoundTripper, wrapTransport, upgradeRequired bool, responder rest.Responder) http.Handler {
 	handler := proxy.NewUpgradeAwareHandler(location, transport, wrapTransport, upgradeRequired, proxy.NewErrorResponder(responder))
 	handler.MaxBytesPerSec = capabilities.Get().PerConnectionBandwidthLimitBytesPerSec

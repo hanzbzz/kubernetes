@@ -172,3 +172,14 @@ type Eviction struct {
 	// +optional
 	DeleteOptions *metav1.DeleteOptions
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// Checkpoints a container
+type Checkpoint struct {
+	metav1.TypeMeta
+
+	// pod that is being checkpointed
+	// +optional
+	metav1.ObjectMeta
+}

@@ -380,6 +380,16 @@ func (Container) SwaggerDoc() map[string]string {
 	return map_Container
 }
 
+var map_ContainerCheckpointOptions = map[string]string{
+	"":          "ContainerCheckpointOptions is the query options to a Pod's checkpoint call",
+	"pod":       "Pod with the container to be checkpointed",
+	"container": "Contaitner that should be checkpointed",
+}
+
+func (ContainerCheckpointOptions) SwaggerDoc() map[string]string {
+	return map_ContainerCheckpointOptions
+}
+
 var map_ContainerImage = map[string]string{
 	"":          "Describe a container image",
 	"names":     "Names by which this image is known. e.g. [\"kubernetes.example/hyperkube:v1.0.7\", \"cloud-vendor.registry.example/cloud-vendor/hyperkube:v1.0.7\"]",
