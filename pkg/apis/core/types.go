@@ -6776,6 +6776,7 @@ type ImageVolumeSource struct {
 // ContainerCheckpointOptions is the query option to checkpoint a container inside a Pod
 type ContainerCheckpointOptions struct {
 	metav1.TypeMeta
+
 	// Pod with the container to be checkpointed
 	Pod string
 

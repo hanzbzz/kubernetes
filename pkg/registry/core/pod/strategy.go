@@ -632,6 +632,8 @@ func streamParams(params url.Values, opts runtime.Object) error {
 			}
 			params.Add(api.PortHeader, strings.Join(ports, ","))
 		}
+	case *api.ContainerCheckpointOptions:
+		return nil
 	default:
 		return fmt.Errorf("Unknown object for streaming: %v", opts)
 	}
