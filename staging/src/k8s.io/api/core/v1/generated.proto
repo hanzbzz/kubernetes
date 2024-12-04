@@ -890,11 +890,8 @@ message Container {
 
 // ContainerCheckpointOptions is the query options to a Pod's checkpoint call
 message ContainerCheckpointOptions {
-  // Pod with the container to be checkpointed
-  optional string pod = 1;
-
-  // Contaitner that should be checkpointed
-  optional string container = 2;
+  // Container that should be checkpointed
+  optional string container = 1;
 }
 
 // Describe a container image

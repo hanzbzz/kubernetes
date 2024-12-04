@@ -21359,24 +21359,16 @@ func schema_k8sio_api_core_v1_ContainerCheckpointOptions(ref common.ReferenceCal
 							Format:      "",
 						},
 					},
-					"pod": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Pod with the container to be checkpointed",
-							Default:     "",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"container": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Contaitner that should be checkpointed",
+							Description: "Container that should be checkpointed",
 							Default:     "",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 				},
-				Required: []string{"pod", "container"},
+				Required: []string{"container"},
 			},
 		},
 	}
