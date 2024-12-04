@@ -6777,9 +6777,6 @@ type ImageVolumeSource struct {
 type ContainerCheckpointOptions struct {
 	metav1.TypeMeta
 
-	// Pod with the container to be checkpointed
-	Pod string
-
 	// Container that should be checkpointed
 	Container string
 }

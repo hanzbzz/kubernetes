@@ -7973,9 +7973,6 @@ type ImageVolumeSource struct {
 type ContainerCheckpointOptions struct {
 	metav1.TypeMeta `json:",inline"`
 
-	// Pod with the container to be checkpointed
-	Pod string `json:"pod" protobuf:"bytes,1,opt,name=pod"`
-
-	// Contaitner that should be checkpointed
-	Container string `json:"container" protobuf:"bytes,2,opt,name=container"`
+	// Container that should be checkpointed
+	Container string `json:"container" protobuf:"bytes,1,name=container"`
 }

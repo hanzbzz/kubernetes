@@ -970,5 +970,32 @@ func CheckpointLocation(
 	name string,
 	opts *api.ContainerCheckpointOptions,
 ) (*url.URL, http.RoundTripper, error) {
-	return streamLocation(ctx, getter, connInfo, name, opts, "", "checkpoint")
+	pod, err := getPod(ctx, getter, name)
+	if err != nil {
+		return nil, nil, err
+	}
+	// Try to figure out a container
+	// If a container was provided, it must be valid
+	container := opts.Container
+	// if pod has only 1 container, the post request argument is ignored
+	container, err = validateContainer(container, pod)
+	if err != nil {
+		return nil, nil, err
+	}
+	nodeName := types.NodeName(pod.Spec.NodeName)
+	if len(nodeName) == 0 {
+		// If pod has not been assigned a host, return an empty location
+		return nil, nil, nil
+	}
+	nodeInfo, err := connInfo.GetConnectionInfo(ctx, nodeName)
+	if err != nil {
+		return nil, nil, err
+	}
+	loc := &url.URL{
+		Scheme: nodeInfo.Scheme,
+		Host:   net.JoinHostPort(nodeInfo.Hostname, nodeInfo.Port),
+		Path:   fmt.Sprintf("/checkpoint/%s/%s/%s", pod.Namespace, pod.Name, container),
+	}
+	return loc, nodeInfo.Transport, nil
+
 }
