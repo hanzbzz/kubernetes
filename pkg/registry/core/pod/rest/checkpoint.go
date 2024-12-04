@@ -22,9 +22,14 @@ import (
 	"net/http"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/httpstream/wsstream"
 	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
 	"k8s.io/apiserver/pkg/registry/rest"
+	utilfeature "k8s.io/apiserver/pkg/util/feature"
+	translator "k8s.io/apiserver/pkg/util/proxy"
 	api "k8s.io/kubernetes/pkg/apis/core"
+	"k8s.io/kubernetes/pkg/capabilities"
+	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/pkg/kubelet/client"
 	"k8s.io/kubernetes/pkg/registry/core/pod"
 
@@ -73,6 +78,19 @@ func (r *CheckpointREST) Connect(ctx context.Context, name string, opts runtime.
 		return nil, err
 	}
 	handler := newThrottledUpgradeAwareProxyHandler(location, transport, false, true, responder)
+	if utilfeature.DefaultFeatureGate.Enabled(features.TranslateStreamCloseWebsocketRequests) {
+		// Wrap the upgrade aware handler to implement stream translation
+		// for WebSocket/V5 upgrade requests.
+		streamOptions := translator.Options{
+			Stdin:  true,
+			Stdout: true,
+			Stderr: true,
+			Tty:    true,
+		}
+		maxBytesPerSec := capabilities.Get().PerConnectionBandwidthLimitBytesPerSec
+		streamtranslator := translator.NewStreamTranslatorHandler(location, transport, maxBytesPerSec, streamOptions)
+		handler = translator.NewTranslatingHandler(handler, streamtranslator, wsstream.IsWebSocketRequestWithStreamCloseProtocol)
+	}
 	return handler, nil
 }
 
