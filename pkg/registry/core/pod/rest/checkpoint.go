@@ -19,17 +19,12 @@ package rest
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/httpstream/wsstream"
 	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
+	genericrest "k8s.io/apiserver/pkg/registry/generic/rest"
 	"k8s.io/apiserver/pkg/registry/rest"
-	utilfeature "k8s.io/apiserver/pkg/util/feature"
-	translator "k8s.io/apiserver/pkg/util/proxy"
 	api "k8s.io/kubernetes/pkg/apis/core"
-	"k8s.io/kubernetes/pkg/capabilities"
-	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/pkg/kubelet/client"
 	"k8s.io/kubernetes/pkg/registry/core/pod"
 
@@ -44,7 +39,7 @@ type CheckpointREST struct {
 }
 
 // Implement Connecter
-var _ = rest.Connecter(&CheckpointREST{})
+var _ = rest.GetterWithOptions(&CheckpointREST{})
 
 // New returns an empty ContainerCheckpointOptions object
 func (r *CheckpointREST) New() runtime.Object {
@@ -57,41 +52,24 @@ func (r *CheckpointREST) Destroy() {
 	// we don't destroy it here explicitly.
 }
 
-// NewConnectOptions returns the versioned object that represents exec parameters
-func (r *CheckpointREST) NewConnectOptions() (runtime.Object, bool, string) {
-	return &api.ContainerCheckpointOptions{}, false, ""
-}
-
-// ConnectMethods returns the methods supported by exec
-func (r *CheckpointREST) ConnectMethods() []string {
-	return upgradeableMethods
-}
-
 // Connect returns a handler for the pod exec proxy
-func (r *CheckpointREST) Connect(ctx context.Context, name string, opts runtime.Object, responder rest.Responder) (http.Handler, error) {
-	execOpts, ok := opts.(*api.ContainerCheckpointOptions)
+func (r *CheckpointREST) Get(ctx context.Context, name string, opts runtime.Object) (runtime.Object, error) {
+	checkpointOpts, ok := opts.(*api.ContainerCheckpointOptions)
 	if !ok {
 		return nil, fmt.Errorf("invalid options object: %#v", opts)
 	}
-	location, transport, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, execOpts)
+
+	location, transport, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, checkpointOpts)
 	if err != nil {
 		return nil, err
 	}
-	handler := newThrottledUpgradeAwareProxyHandler(location, transport, false, true, responder)
-	if utilfeature.DefaultFeatureGate.Enabled(features.TranslateStreamCloseWebsocketRequests) {
-		// Wrap the upgrade aware handler to implement stream translation
-		// for WebSocket/V5 upgrade requests.
-		streamOptions := translator.Options{
-			Stdin:  true,
-			Stdout: true,
-			Stderr: true,
-			Tty:    true,
-		}
-		maxBytesPerSec := capabilities.Get().PerConnectionBandwidthLimitBytesPerSec
-		streamtranslator := translator.NewStreamTranslatorHandler(location, transport, maxBytesPerSec, streamOptions)
-		handler = translator.NewTranslatingHandler(handler, streamtranslator, wsstream.IsWebSocketRequestWithStreamCloseProtocol)
-	}
-	return handler, nil
+	return &genericrest.LocationStreamer{
+		Location:        location,
+		Transport:       transport,
+		ContentType:     "text/plain",
+		ResponseChecker: genericrest.NewGenericHttpResponseChecker(api.Resource("pods/checkpoint"), name),
+		RedirectChecker: genericrest.PreventRedirects,
+	}, nil
 }
 
 // NewGetOptions creates a new options object
