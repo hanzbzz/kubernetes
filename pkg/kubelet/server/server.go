@@ -478,7 +478,7 @@ func (s *Server) InstallDefaultHandlers() {
 		s.addMetricsBucketMatcher("checkpoint")
 		ws = &restful.WebService{}
 		ws.Path(checkpointPath).Produces(restful.MIME_JSON)
-		ws.Route(ws.GET("/{podNamespace}/{podID}/{containerName}").
+		ws.Route(ws.POST("/{podNamespace}/{podID}/{containerName}").
 			To(s.checkpoint).
 			Operation("checkpoint"))
 		s.restfulCont.Add(ws)

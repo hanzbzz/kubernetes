@@ -6780,3 +6780,7 @@ type ContainerCheckpointOptions struct {
 	// Container that should be checkpointed
 	Container string
 }
+
+type ContainerCheckpointResponse struct {
+	Items []string
+}

@@ -17,12 +17,15 @@ limitations under the License.
 package rest
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
-	genericrest "k8s.io/apiserver/pkg/registry/generic/rest"
 	"k8s.io/apiserver/pkg/registry/rest"
 	api "k8s.io/kubernetes/pkg/apis/core"
 	"k8s.io/kubernetes/pkg/kubelet/client"
@@ -39,7 +42,7 @@ type CheckpointREST struct {
 }
 
 // Implement Connecter
-var _ = rest.GetterWithOptions(&CheckpointREST{})
+var _ = rest.NamedCreater(&CheckpointREST{})
 
 // New returns an empty ContainerCheckpointOptions object
 func (r *CheckpointREST) New() runtime.Object {
@@ -52,27 +55,37 @@ func (r *CheckpointREST) Destroy() {
 	// we don't destroy it here explicitly.
 }
 
-// Connect returns a handler for the pod exec proxy
-func (r *CheckpointREST) Get(ctx context.Context, name string, opts runtime.Object) (runtime.Object, error) {
-	checkpointOpts, ok := opts.(*api.ContainerCheckpointOptions)
-	if !ok {
-		return nil, fmt.Errorf("invalid options object: %#v", opts)
-	}
-
-	location, transport, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, checkpointOpts)
+func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
+	reqBody := obj.(*api.ContainerCheckpointOptions)
+	location, transport, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, reqBody)
 	if err != nil {
 		return nil, err
 	}
-	return &genericrest.LocationStreamer{
-		Location:        location,
-		Transport:       transport,
-		ContentType:     "text/plain",
-		ResponseChecker: genericrest.NewGenericHttpResponseChecker(api.Resource("pods/checkpoint"), name),
-		RedirectChecker: genericrest.PreventRedirects,
-	}, nil
-}
+	req, err := http.NewRequest("POST", location.String(), bytes.NewBuffer([]byte(reqBody.String())))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{
+		Transport: transport,
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
 
-// NewGetOptions creates a new options object
-func (r *CheckpointREST) NewGetOptions() (runtime.Object, bool, string) {
-	return &api.ContainerCheckpointOptions{}, false, ""
+	defer resp.Body.Close()
+
+	var responseData *api.ContainerCheckpointResponse
+	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
+		return nil, err
+	}
+
+	details := metav1.StatusDetails{Name: responseData.Items[0]}
+	return &metav1.Status{
+		Status:  metav1.StatusSuccess,
+		Message: fmt.Sprintf("Checkpoint of container %v succesfull", reqBody.Container),
+		Details: &details,
+		Code:    http.StatusCreated,
+	}, nil
 }
