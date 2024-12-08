@@ -6778,7 +6778,7 @@ type ContainerCheckpointOptions struct {
 	metav1.TypeMeta
 
 	// Container that should be checkpointed
-	Container string
+	Container string `json:"container"`
 }
 
 type ContainerCheckpointResponse struct {

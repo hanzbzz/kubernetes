@@ -746,8 +746,6 @@ func PortForwardLocation(
 func validateContainer(container string, pod *api.Pod) (string, error) {
 	if len(container) == 0 {
 		switch len(pod.Spec.Containers) {
-		case 1:
-			container = pod.Spec.Containers[0].Name
 		case 0:
 			return "", errors.NewBadRequest(fmt.Sprintf("a container name must be specified for pod %s", pod.Name))
 		default:
