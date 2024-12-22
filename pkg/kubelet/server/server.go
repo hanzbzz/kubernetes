@@ -1003,7 +1003,11 @@ func (s *Server) checkpoint(request *restful.Request, response *restful.Response
 	ctx := request.Request.Context()
 	pod, ok := s.host.GetPodByName(request.PathParameter("podNamespace"), request.PathParameter("podID"))
 	if !ok {
-		response.WriteError(http.StatusNotFound, fmt.Errorf("pod does not exist"))
+		response.WriteHeaderAndJson(
+			http.StatusNotFound,
+			map[string]string{"message": fmt.Sprintf("pod %v not found", request.PathParameter("podID"))},
+			restful.MIME_JSON,
+		)
 		return
 	}
 
@@ -1033,47 +1037,34 @@ func (s *Server) checkpoint(request *restful.Request, response *restful.Response
 		}
 	}
 	if !found {
-		response.WriteError(
+		response.WriteHeaderAndJson(
 			http.StatusNotFound,
-			fmt.Errorf("container %v does not exist", containerName),
+			map[string]string{"message": fmt.Sprintf("container %v not found", containerName)},
+			restful.MIME_JSON,
 		)
 		return
 	}
 
-	options := &runtimeapi.CheckpointContainerRequest{}
-	// Query parameter to select an optional timeout. Without the timeout parameter
-	// the checkpoint command will use the default CRI timeout.
-	timeouts := request.Request.URL.Query()["timeout"]
-	if len(timeouts) > 0 {
-		// If the user specified one or multiple values for timeouts we
-		// are using the last available value.
-		timeout, err := strconv.ParseInt(timeouts[len(timeouts)-1], 10, 64)
-		if err != nil {
-			response.WriteError(
-				http.StatusNotFound,
-				fmt.Errorf("cannot parse value of timeout parameter"),
-			)
-			return
-		}
-		options.Timeout = timeout
+	var options runtimeapi.CheckpointContainerRequest
+	err := request.ReadEntity(&options)
+	if err != nil {
+		response.WriteHeaderAndJson(
+			http.StatusBadRequest,
+			map[string]string{"message": err.Error()}, restful.MIME_JSON)
+		return
 	}
-
-	if err := s.host.CheckpointContainer(ctx, pod.UID, kubecontainer.GetPodFullName(pod), containerName, options); err != nil {
-		response.WriteError(
+	if err := s.host.CheckpointContainer(ctx, pod.UID, kubecontainer.GetPodFullName(pod), containerName, &options); err != nil {
+		response.WriteHeaderAndJson(
 			http.StatusInternalServerError,
-			fmt.Errorf(
-				"checkpointing of %v/%v/%v failed (%v)",
-				request.PathParameter("podNamespace"),
-				request.PathParameter("podID"),
-				containerName,
-				err,
-			),
+			map[string]string{"message": fmt.Sprintf("checkpoint failed (%v)", err)},
+			restful.MIME_JSON,
 		)
 		return
 	}
-	writeJSONResponse(
-		response,
-		[]byte(fmt.Sprintf("{\"items\":[\"%s\"]}", options.Location)),
+	response.WriteHeaderAndJson(
+		http.StatusCreated,
+		map[string][]string{"items": {options.Location}},
+		restful.MIME_JSON,
 	)
 }
 

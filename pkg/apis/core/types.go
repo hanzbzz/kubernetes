@@ -6778,9 +6778,18 @@ type ContainerCheckpointOptions struct {
 	metav1.TypeMeta
 
 	// Container that should be checkpointed
-	Container string `json:"container"`
+	Container string
+	// Timeout in seconds for the checkpoint to complete.
+	// Timeout of zero means to use the CRI default.
+	// Timeout > 0 means to use the user specified timeout.
+	// +optional
+	Timeout int64
+	// Exit indicates if the container should be stopped after the checkpoint
+	// +optional
+	Exit bool
 }
 
 type ContainerCheckpointResponse struct {
-	Items []string
+	Items   []string
+	Message string
 }

@@ -7975,4 +7975,12 @@ type ContainerCheckpointOptions struct {
 
 	// Container that should be checkpointed
 	Container string `json:"container" protobuf:"bytes,1,name=container"`
+	// Timeout in seconds for the checkpoint to complete.
+	// Timeout of zero means to use the CRI default.
+	// Timeout > 0 means to use the user specified timeout.
+	// +optional
+	Timeout int64 `json:"timeout,omitempty" protobuf:"varint,2,opt,name=timeout"`
+	// Exit indicates if the container should be stopped after the checkpoint
+	// +optional
+	Exit bool `json:"exit,omitempty" protobuf:"varint,3,opt,name=exit"`
 }

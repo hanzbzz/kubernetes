@@ -57,11 +57,16 @@ func (r *CheckpointREST) Destroy() {
 
 func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
 	reqBody := obj.(*api.ContainerCheckpointOptions)
-	location, transport, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, reqBody)
+	location, transport, container, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, reqBody)
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("POST", location.String(), bytes.NewBuffer([]byte(reqBody.String())))
+	// Marshal the object into JSON
+	jsonData, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", location.String(), bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}
@@ -80,11 +85,17 @@ func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Ob
 	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
 		return nil, err
 	}
-
+	if resp.StatusCode != http.StatusCreated {
+		return &metav1.Status{
+			Status:  metav1.StatusFailure,
+			Message: responseData.Message,
+			Code:    int32(resp.StatusCode),
+		}, nil
+	}
 	details := metav1.StatusDetails{Name: responseData.Items[0]}
 	return &metav1.Status{
 		Status:  metav1.StatusSuccess,
-		Message: fmt.Sprintf("Checkpoint of container %v succesfull", reqBody.Container),
+		Message: fmt.Sprintf("Checkpoint of container %s succesfull", container),
 		Details: &details,
 		Code:    http.StatusCreated,
 	}, nil
