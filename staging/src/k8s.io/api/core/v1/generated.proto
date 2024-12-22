@@ -892,6 +892,16 @@ message Container {
 message ContainerCheckpointOptions {
   // Container that should be checkpointed
   optional string container = 1;
+
+  // Timeout in seconds for the checkpoint to complete.
+  // Timeout of zero means to use the CRI default.
+  // Timeout > 0 means to use the user specified timeout.
+  // +optional
+  optional int64 timeout = 2;
+
+  // Exit indicates if the container should be stopped after the checkpoint
+  // +optional
+  optional bool exit = 3;
 }
 
 // Describe a container image

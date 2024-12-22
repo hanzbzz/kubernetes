@@ -3233,6 +3233,8 @@ func Convert_core_Container_To_v1_Container(in *core.Container, out *corev1.Cont
 
 func autoConvert_v1_ContainerCheckpointOptions_To_core_ContainerCheckpointOptions(in *corev1.ContainerCheckpointOptions, out *core.ContainerCheckpointOptions, s conversion.Scope) error {
 	out.Container = in.Container
+	out.Timeout = in.Timeout
+	out.Exit = in.Exit
 	return nil
 }
 
@@ -3243,6 +3245,8 @@ func Convert_v1_ContainerCheckpointOptions_To_core_ContainerCheckpointOptions(in
 
 func autoConvert_core_ContainerCheckpointOptions_To_v1_ContainerCheckpointOptions(in *core.ContainerCheckpointOptions, out *corev1.ContainerCheckpointOptions, s conversion.Scope) error {
 	out.Container = in.Container
+	out.Timeout = in.Timeout
+	out.Exit = in.Exit
 	return nil
 }
 
@@ -3260,6 +3264,20 @@ func autoConvert_url_Values_To_v1_ContainerCheckpointOptions(in *url.Values, out
 		}
 	} else {
 		out.Container = ""
+	}
+	if values, ok := map[string][]string(*in)["timeout"]; ok && len(values) > 0 {
+		if err := runtime.Convert_Slice_string_To_int64(&values, &out.Timeout, s); err != nil {
+			return err
+		}
+	} else {
+		out.Timeout = 0
+	}
+	if values, ok := map[string][]string(*in)["exit"]; ok && len(values) > 0 {
+		if err := runtime.Convert_Slice_string_To_bool(&values, &out.Exit, s); err != nil {
+			return err
+		}
+	} else {
+		out.Exit = false
 	}
 	return nil
 }

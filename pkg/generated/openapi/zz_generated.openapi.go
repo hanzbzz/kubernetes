@@ -21367,6 +21367,20 @@ func schema_k8sio_api_core_v1_ContainerCheckpointOptions(ref common.ReferenceCal
 							Format:      "",
 						},
 					},
+					"timeout": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Timeout in seconds for the checkpoint to complete. Timeout of zero means to use the CRI default. Timeout > 0 means to use the user specified timeout.",
+							Type:        []string{"integer"},
+							Format:      "int64",
+						},
+					},
+					"exit": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Exit indicates if the container should be stopped after the checkpoint",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 				},
 				Required: []string{"container"},
 			},
