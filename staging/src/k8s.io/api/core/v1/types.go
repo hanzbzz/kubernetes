@@ -7784,6 +7784,7 @@ type ImageVolumeSource struct {
 }
 
 // ContainerCheckpointOptions is the query options to a Pod's checkpoint call
+// +k8s:prerelease-lifecycle-gen:introduced=1.31
 type ContainerCheckpointOptions struct {
 	metav1.TypeMeta `json:",inline"`
 
