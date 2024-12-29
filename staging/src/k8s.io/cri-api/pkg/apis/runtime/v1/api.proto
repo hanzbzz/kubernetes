@@ -1850,6 +1850,8 @@ message CheckpointContainerRequest {
     // Timeout of zero means to use the CRI default.
     // Timeout > 0 means to use the user specified timeout.
     int64 timeout = 3;
+    // Exit indicates if the container should be stopped after the checkpoint
+	bool exit = 4;
 }
 
 message CheckpointContainerResponse {}
