@@ -380,6 +380,17 @@ func (Container) SwaggerDoc() map[string]string {
 	return map_Container
 }
 
+var map_ContainerCheckpointOptions = map[string]string{
+	"":          "ContainerCheckpointOptions is the query options to a Pod's checkpoint call",
+	"container": "Container that should be checkpointed",
+	"timeout":   "Timeout in seconds for the checkpoint to complete. Timeout of zero means to use the CRI default. Timeout > 0 means to use the user specified timeout.",
+	"exit":      "Exit indicates if the container should be stopped after the checkpoint",
+}
+
+func (ContainerCheckpointOptions) SwaggerDoc() map[string]string {
+	return map_ContainerCheckpointOptions
+}
+
 var map_ContainerImage = map[string]string{
 	"":          "Describe a container image",
 	"names":     "Names by which this image is known. e.g. [\"kubernetes.example/hyperkube:v1.0.7\", \"cloud-vendor.registry.example/cloud-vendor/hyperkube:v1.0.7\"]",

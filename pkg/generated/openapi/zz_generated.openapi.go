@@ -411,6 +411,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"k8s.io/api/core/v1.ConfigMapProjection":                                                                schema_k8sio_api_core_v1_ConfigMapProjection(ref),
 		"k8s.io/api/core/v1.ConfigMapVolumeSource":                                                              schema_k8sio_api_core_v1_ConfigMapVolumeSource(ref),
 		"k8s.io/api/core/v1.Container":                                                                          schema_k8sio_api_core_v1_Container(ref),
+		"k8s.io/api/core/v1.ContainerCheckpointOptions":                                                         schema_k8sio_api_core_v1_ContainerCheckpointOptions(ref),
 		"k8s.io/api/core/v1.ContainerImage":                                                                     schema_k8sio_api_core_v1_ContainerImage(ref),
 		"k8s.io/api/core/v1.ContainerPort":                                                                      schema_k8sio_api_core_v1_ContainerPort(ref),
 		"k8s.io/api/core/v1.ContainerResizePolicy":                                                              schema_k8sio_api_core_v1_ContainerResizePolicy(ref),
@@ -20901,6 +20902,56 @@ func schema_k8sio_api_core_v1_Container(ref common.ReferenceCallback) common.Ope
 		},
 		Dependencies: []string{
 			"k8s.io/api/core/v1.ContainerPort", "k8s.io/api/core/v1.ContainerResizePolicy", "k8s.io/api/core/v1.EnvFromSource", "k8s.io/api/core/v1.EnvVar", "k8s.io/api/core/v1.Lifecycle", "k8s.io/api/core/v1.Probe", "k8s.io/api/core/v1.ResourceRequirements", "k8s.io/api/core/v1.SecurityContext", "k8s.io/api/core/v1.VolumeDevice", "k8s.io/api/core/v1.VolumeMount"},
+	}
+}
+
+func schema_k8sio_api_core_v1_ContainerCheckpointOptions(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ContainerCheckpointOptions is the query options to a Pod's checkpoint call",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"container": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Container that should be checkpointed",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"timeout": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Timeout in seconds for the checkpoint to complete. Timeout of zero means to use the CRI default. Timeout > 0 means to use the user specified timeout.",
+							Type:        []string{"integer"},
+							Format:      "int64",
+						},
+					},
+					"exit": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Exit indicates if the container should be stopped after the checkpoint",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"container"},
+			},
+		},
 	}
 }
 
