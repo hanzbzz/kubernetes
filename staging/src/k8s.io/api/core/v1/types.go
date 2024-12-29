@@ -7783,8 +7783,11 @@ type ImageVolumeSource struct {
 	PullPolicy PullPolicy `json:"pullPolicy,omitempty" protobuf:"bytes,2,opt,name=pullPolicy,casttype=PullPolicy"`
 }
 
-// ContainerCheckpointOptions is the query options to a Pod's checkpoint call
+// +k8s:conversion-gen:explicit-from=net/url.Values
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +k8s:prerelease-lifecycle-gen:introduced=1.31
+
+// ContainerCheckpointOptions is the query options to a Pod's checkpoint call
 type ContainerCheckpointOptions struct {
 	metav1.TypeMeta `json:",inline"`
 
