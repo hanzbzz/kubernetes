@@ -890,7 +890,6 @@ message Container {
 }
 
 // ContainerCheckpointOptions is the query options to a Pod's checkpoint call
-// +k8s:prerelease-lifecycle-gen:introduced=1.31
 message ContainerCheckpointOptions {
   // Container that should be checkpointed
   optional string container = 1;
