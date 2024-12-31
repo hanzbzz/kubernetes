@@ -221,3 +221,15 @@ type Eviction struct {
 	// +optional
 	DeleteOptions *metav1.DeleteOptions `json:"deleteOptions,omitempty" protobuf:"bytes,2,opt,name=deleteOptions"`
 }
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +k8s:prerelease-lifecycle-gen:introduced=1.31
+
+// Checkpoints a container
+type Checkpoint struct {
+	metav1.TypeMeta `json:",inline"`
+
+	// pod that is being checkpointed
+	// +optional
+	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+}

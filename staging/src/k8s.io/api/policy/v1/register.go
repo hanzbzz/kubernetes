@@ -45,6 +45,7 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&PodDisruptionBudget{},
 		&PodDisruptionBudgetList{},
 		&Eviction{},
+		&Checkpoint{},
 	)
 	// Add the watch version that applies
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)

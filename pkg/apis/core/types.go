@@ -6621,6 +6621,8 @@ type ImageVolumeSource struct {
 	PullPolicy PullPolicy
 }
 
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // ContainerCheckpointOptions is the query option to checkpoint a container
 type ContainerCheckpointOptions struct {
 	metav1.TypeMeta
