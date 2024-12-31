@@ -846,6 +846,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"k8s.io/api/node/v1beta1.RuntimeClass":                                                                  schema_k8sio_api_node_v1beta1_RuntimeClass(ref),
 		"k8s.io/api/node/v1beta1.RuntimeClassList":                                                              schema_k8sio_api_node_v1beta1_RuntimeClassList(ref),
 		"k8s.io/api/node/v1beta1.Scheduling":                                                                    schema_k8sio_api_node_v1beta1_Scheduling(ref),
+		"k8s.io/api/policy/v1.Checkpoint":                                                                       schema_k8sio_api_policy_v1_Checkpoint(ref),
 		"k8s.io/api/policy/v1.Eviction":                                                                         schema_k8sio_api_policy_v1_Eviction(ref),
 		"k8s.io/api/policy/v1.PodDisruptionBudget":                                                              schema_k8sio_api_policy_v1_PodDisruptionBudget(ref),
 		"k8s.io/api/policy/v1.PodDisruptionBudgetList":                                                          schema_k8sio_api_policy_v1_PodDisruptionBudgetList(ref),
@@ -43291,6 +43292,42 @@ func schema_k8sio_api_node_v1beta1_Scheduling(ref common.ReferenceCallback) comm
 		},
 		Dependencies: []string{
 			"k8s.io/api/core/v1.Toleration"},
+	}
+}
+
+func schema_k8sio_api_policy_v1_Checkpoint(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Checkpoints a container",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Description: "pod that is being checkpointed",
+							Default:     map[string]interface{}{},
+							Ref:         ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
