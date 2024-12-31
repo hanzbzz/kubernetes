@@ -556,6 +556,8 @@ func streamParams(params url.Values, opts runtime.Object) error {
 			}
 			params.Add(api.PortHeader, strings.Join(ports, ","))
 		}
+	case *api.ContainerCheckpointOptions:
+		return nil
 	default:
 		return fmt.Errorf("Unknown object for streaming: %v", opts)
 	}
@@ -668,8 +670,6 @@ func PortForwardLocation(
 func validateContainer(container string, pod *api.Pod) (string, error) {
 	if len(container) == 0 {
 		switch len(pod.Spec.Containers) {
-		case 1:
-			container = pod.Spec.Containers[0].Name
 		case 0:
 			return "", errors.NewBadRequest(fmt.Sprintf("a container name must be specified for pod %s", pod.Name))
 		default:
@@ -883,4 +883,43 @@ func apparmorFieldForAnnotation(annotation string) *api.AppArmorProfile {
 	// we can only reach this code path if the localhostProfile name has a zero
 	// length or if the annotation has an unrecognized value
 	return nil
+}
+
+func CheckpointLocation(
+	ctx context.Context,
+	getter ResourceGetter,
+	connInfo client.ConnectionInfoGetter,
+	name string,
+	opts *api.ContainerCheckpointOptions,
+) (*url.URL, http.RoundTripper, string, error) {
+	pod, err := getPod(ctx, getter, name)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	// Try to figure out a container
+	// If a container was provided, it must be valid
+	container := opts.Container
+	// if pod has only 1 container, the post request argument is ignored
+	container, err = validateContainer(container, pod)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	nodeName := types.NodeName(pod.Spec.NodeName)
+	if len(nodeName) == 0 {
+		// If pod has not been assigned a host, return an empty location
+		return nil, nil, container, nil
+	}
+	nodeInfo, err := connInfo.GetConnectionInfo(ctx, nodeName)
+	if err != nil {
+		return nil, nil, container, err
+	}
+	// create path
+	path := fmt.Sprintf("/checkpoint/%s/%s/%s", pod.Namespace, pod.Name, container)
+	loc := &url.URL{
+		Scheme: nodeInfo.Scheme,
+		Host:   net.JoinHostPort(nodeInfo.Hostname, nodeInfo.Port),
+		Path:   path,
+	}
+	return loc, nodeInfo.Transport, container, nil
+
 }

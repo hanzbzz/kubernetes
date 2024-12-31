@@ -1,0 +1,99 @@
+/*
+Copyright 2014 The Kubernetes Authors.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package rest
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
+	"k8s.io/apiserver/pkg/registry/rest"
+	api "k8s.io/kubernetes/pkg/apis/core"
+	"k8s.io/kubernetes/pkg/kubelet/client"
+	"k8s.io/kubernetes/pkg/registry/core/pod"
+
+	// ensure types are installed
+	_ "k8s.io/kubernetes/pkg/apis/core/install"
+)
+
+// CheckpointREST implements the checkpoint subresource for a Container in a Pod
+type CheckpointREST struct {
+	Store       *genericregistry.Store
+	KubeletConn client.ConnectionInfoGetter
+}
+
+// Implement Connecter
+var _ = rest.NamedCreater(&CheckpointREST{})
+
+// New returns an empty ContainerCheckpointOptions object
+func (r *CheckpointREST) New() runtime.Object {
+	return &api.ContainerCheckpointOptions{}
+}
+
+// Destroy cleans up resources on shutdown.
+func (r *CheckpointREST) Destroy() {
+	// Given that underlying store is shared with REST,
+	// we don't destroy it here explicitly.
+}
+
+func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
+	reqBody := obj.(*api.ContainerCheckpointOptions)
+	location, transport, container, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, reqBody)
+	if err != nil {
+		return nil, err
+	}
+	// Marshal the object into JSON
+	jsonData, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", location.String(), bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{
+		Transport: transport,
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	var responseData *api.ContainerCheckpointResponse
+	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusCreated {
+		return &metav1.Status{
+			Status:  metav1.StatusFailure,
+			Message: responseData.Message,
+			Code:    int32(resp.StatusCode),
+		}, nil
+	}
+	details := metav1.StatusDetails{Name: responseData.Items[0]}
+	return &metav1.Status{
+		Status:  metav1.StatusSuccess,
+		Message: fmt.Sprintf("Checkpoint of container %s succesfull", container),
+		Details: &details,
+		Code:    http.StatusCreated,
+	}, nil
+}
