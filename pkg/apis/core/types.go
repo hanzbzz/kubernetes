@@ -6640,6 +6640,7 @@ type ContainerCheckpointOptions struct {
 }
 
 type ContainerCheckpointResponse struct {
-	Items   []string
-	Message string
+	Location string
+	Node     string
+	Message  string
 }

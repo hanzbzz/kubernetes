@@ -953,10 +953,24 @@ func (s *Server) checkpoint(request *restful.Request, response *restful.Response
 	ctx := request.Request.Context()
 	pod, ok := s.host.GetPodByName(request.PathParameter("podNamespace"), request.PathParameter("podID"))
 	if !ok {
-		response.WriteError(http.StatusNotFound, fmt.Errorf("pod does not exist"))
+		response.WriteHeaderAndJson(
+			http.StatusNotFound,
+			map[string]string{"message": fmt.Sprintf("pod %v not found", request.PathParameter("podID"))},
+			restful.MIME_JSON,
+		)
 		return
 	}
 
+	node, err := s.host.GetNode()
+	if err != nil {
+		response.WriteHeaderAndJson(
+			http.StatusNotFound,
+			map[string]string{"message": "failed getting node info"},
+			restful.MIME_JSON,
+		)
+		return
+	}
+	nodeName := node.Name
 	containerName := request.PathParameter("containerName")
 
 	found := false
@@ -992,7 +1006,7 @@ func (s *Server) checkpoint(request *restful.Request, response *restful.Response
 	}
 
 	var options runtimeapi.CheckpointContainerRequest
-	err := request.ReadEntity(&options)
+	err = request.ReadEntity(&options)
 	if err != nil {
 		response.WriteHeaderAndJson(
 			http.StatusBadRequest,
@@ -1010,7 +1024,7 @@ func (s *Server) checkpoint(request *restful.Request, response *restful.Response
 	}
 	response.WriteHeaderAndJson(
 		http.StatusCreated,
-		map[string][]string{"items": {options.Location}},
+		map[string]string{"location": options.Location, "node": nodeName},
 		restful.MIME_JSON,
 	)
 }

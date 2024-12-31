@@ -89,7 +89,7 @@ func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Ob
 			Code:    int32(resp.StatusCode),
 		}, nil
 	}
-	details := metav1.StatusDetails{Name: responseData.Items[0]}
+	details := metav1.StatusDetails{Kind: responseData.Location, Name: responseData.Node}
 	return &metav1.Status{
 		Status:  metav1.StatusSuccess,
 		Message: fmt.Sprintf("Checkpoint of container %s succesfull", container),
