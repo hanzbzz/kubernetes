@@ -7801,4 +7801,6 @@ type ContainerCheckpointOptions struct {
 	// Exit indicates if the container should be stopped after the checkpoint
 	// +optional
 	Exit bool `json:"exit,omitempty" protobuf:"varint,3,opt,name=exit"`
+	// Encrypt the checkpoint
+	Encrypt bool `json:"encrypt,omitempty" protobuf:"varint,4,opt,name=encrypt"`
 }

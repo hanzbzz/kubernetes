@@ -1852,6 +1852,8 @@ message CheckpointContainerRequest {
     int64 timeout = 3;
     // Exit indicates if the container should be stopped after the checkpoint
 	bool exit = 4;
+    // Encrypt the checkpoint
+    bool encrypt =5;
 }
 
 message CheckpointContainerResponse {}

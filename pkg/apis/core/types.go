@@ -6637,6 +6637,9 @@ type ContainerCheckpointOptions struct {
 	// Exit indicates if the container should be stopped after the checkpoint
 	// +optional
 	Exit bool
+	// Encrypt the checkpoint
+	// +optional
+	Encrypt bool
 }
 
 type ContainerCheckpointResponse struct {
