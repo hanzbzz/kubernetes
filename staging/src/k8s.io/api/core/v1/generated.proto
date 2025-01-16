@@ -903,6 +903,9 @@ message ContainerCheckpointOptions {
   // Exit indicates if the container should be stopped after the checkpoint
   // +optional
   optional bool exit = 3;
+
+  // Encrypt the checkpoint
+  optional bool encrypt = 4;
 }
 
 // Describe a container image

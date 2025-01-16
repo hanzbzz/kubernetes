@@ -385,6 +385,7 @@ var map_ContainerCheckpointOptions = map[string]string{
 	"container": "Container that should be checkpointed",
 	"timeout":   "Timeout in seconds for the checkpoint to complete. Timeout of zero means to use the CRI default. Timeout > 0 means to use the user specified timeout.",
 	"exit":      "Exit indicates if the container should be stopped after the checkpoint",
+	"encrypt":   "Encrypt the checkpoint",
 }
 
 func (ContainerCheckpointOptions) SwaggerDoc() map[string]string {

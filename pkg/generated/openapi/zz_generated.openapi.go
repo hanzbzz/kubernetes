@@ -20949,6 +20949,13 @@ func schema_k8sio_api_core_v1_ContainerCheckpointOptions(ref common.ReferenceCal
 							Format:      "",
 						},
 					},
+					"encrypt": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Encrypt the checkpoint",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 				},
 				Required: []string{"container"},
 			},

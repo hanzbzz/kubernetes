@@ -3230,6 +3230,7 @@ func autoConvert_v1_ContainerCheckpointOptions_To_core_ContainerCheckpointOption
 	out.Container = in.Container
 	out.Timeout = in.Timeout
 	out.Exit = in.Exit
+	out.Encrypt = in.Encrypt
 	return nil
 }
 
@@ -3242,6 +3243,7 @@ func autoConvert_core_ContainerCheckpointOptions_To_v1_ContainerCheckpointOption
 	out.Container = in.Container
 	out.Timeout = in.Timeout
 	out.Exit = in.Exit
+	out.Encrypt = in.Encrypt
 	return nil
 }
 
@@ -3273,6 +3275,13 @@ func autoConvert_url_Values_To_v1_ContainerCheckpointOptions(in *url.Values, out
 		}
 	} else {
 		out.Exit = false
+	}
+	if values, ok := map[string][]string(*in)["encrypt"]; ok && len(values) > 0 {
+		if err := runtime.Convert_Slice_string_To_bool(&values, &out.Encrypt, s); err != nil {
+			return err
+		}
+	} else {
+		out.Encrypt = false
 	}
 	return nil
 }
