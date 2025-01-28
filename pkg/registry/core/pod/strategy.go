@@ -670,16 +670,21 @@ func PortForwardLocation(
 func validateContainer(container string, pod *api.Pod) (string, error) {
 	if len(container) == 0 {
 		switch len(pod.Spec.Containers) {
-		case 0:
-			return "", errors.NewBadRequest(fmt.Sprintf("a container name must be specified for pod %s", pod.Name))
+		case 1, 0:
+			container = pod.Spec.Containers[0].Name
 		default:
-			var containerNames []string
-			podutil.VisitContainers(&pod.Spec, podutil.AllFeatureEnabledContainers(), func(c *api.Container, containerType podutil.ContainerType) bool {
-				containerNames = append(containerNames, c.Name)
-				return true
-			})
-			errStr := fmt.Sprintf("a container name must be specified for pod %s, choose one of: %s", pod.Name, containerNames)
-			return "", errors.NewBadRequest(errStr)
+			// no container specified in the request, return first one
+			if container == "" {
+				container = pod.Spec.Containers[0].Name
+			} else {
+				var containerNames []string
+				podutil.VisitContainers(&pod.Spec, podutil.AllFeatureEnabledContainers(), func(c *api.Container, containerType podutil.ContainerType) bool {
+					containerNames = append(containerNames, c.Name)
+					return true
+				})
+				errStr := fmt.Sprintf("a container name must be specified for pod %s, choose one of: %s", pod.Name, containerNames)
+				return "", errors.NewBadRequest(errStr)
+			}
 		}
 	} else {
 		if !podHasContainerWithName(pod, container) {
