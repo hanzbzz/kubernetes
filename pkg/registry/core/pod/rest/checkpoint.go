@@ -53,13 +53,17 @@ func (r *CheckpointREST) Destroy() {
 }
 
 func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
-	reqBody := obj.(*api.ContainerCheckpointOptions)
-	location, transport, container, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, reqBody)
+	opts := obj.(*api.ContainerCheckpointOptions)
+	if opts.LeaveRunning == nil {
+		defaultTrue := true
+		opts.LeaveRunning = &defaultTrue
+	}
+	location, transport, container, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, opts)
 	if err != nil {
 		return nil, err
 	}
 	// Marshal the object into JSON
-	jsonData, err := json.Marshal(reqBody)
+	jsonData, err := json.Marshal(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +94,7 @@ func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Ob
 		}, nil
 	}
 	details := metav1.StatusDetails{Kind: responseData.Location, Name: responseData.Node}
-	if !reqBody.LeaveRunning {
+	if !*opts.LeaveRunning {
 		r.Store.Delete(ctx, name, rest.ValidateAllObjectFunc, &metav1.DeleteOptions{})
 	}
 	return &metav1.Status{

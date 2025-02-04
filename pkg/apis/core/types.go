@@ -6636,7 +6636,7 @@ type ContainerCheckpointOptions struct {
 	Timeout int64
 	// LeaveRunning indicates if the container should be stopped after the checkpoint
 	// +optional
-	LeaveRunning bool
+	LeaveRunning *bool
 	// Encrypt the checkpoint
 	// +optional
 	Encrypt bool
