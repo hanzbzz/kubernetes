@@ -90,7 +90,7 @@ func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Ob
 		}, nil
 	}
 	details := metav1.StatusDetails{Kind: responseData.Location, Name: responseData.Node}
-	if reqBody.Exit {
+	if !reqBody.LeaveRunning {
 		r.Store.Delete(ctx, name, rest.ValidateAllObjectFunc, &metav1.DeleteOptions{})
 	}
 	return &metav1.Status{
