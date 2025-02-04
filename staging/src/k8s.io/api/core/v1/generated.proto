@@ -900,9 +900,9 @@ message ContainerCheckpointOptions {
   // +optional
   optional int64 timeout = 2;
 
-  // Exit indicates if the container should be stopped after the checkpoint
+  // LeaveRunning indicates if the container should be stopped after the checkpoint
   // +optional
-  optional bool exit = 3;
+  optional bool leaveRunning = 3;
 
   // Encrypt the checkpoint
   optional bool encrypt = 4;

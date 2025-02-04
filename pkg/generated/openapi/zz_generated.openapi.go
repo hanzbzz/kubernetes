@@ -20942,9 +20942,9 @@ func schema_k8sio_api_core_v1_ContainerCheckpointOptions(ref common.ReferenceCal
 							Format:      "int64",
 						},
 					},
-					"exit": {
+					"leaveRunning": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Exit indicates if the container should be stopped after the checkpoint",
+							Description: "LeaveRunning indicates if the container should be stopped after the checkpoint",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
