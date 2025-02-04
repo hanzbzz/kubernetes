@@ -7798,9 +7798,9 @@ type ContainerCheckpointOptions struct {
 	// Timeout > 0 means to use the user specified timeout.
 	// +optional
 	Timeout int64 `json:"timeout,omitempty" protobuf:"varint,2,opt,name=timeout"`
-	// Exit indicates if the container should be stopped after the checkpoint
+	// LeaveRunning indicates if the container should be stopped after the checkpoint
 	// +optional
-	Exit bool `json:"exit,omitempty" protobuf:"varint,3,opt,name=exit"`
+	LeaveRunning bool `json:"leaveRunning,omitempty" protobuf:"varint,3,opt,name=leaveRunning"`
 	// Encrypt the checkpoint
 	Encrypt bool `json:"encrypt,omitempty" protobuf:"varint,4,opt,name=encrypt"`
 }

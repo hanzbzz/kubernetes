@@ -1006,6 +1006,9 @@ func (s *Server) checkpoint(request *restful.Request, response *restful.Response
 	}
 
 	var options runtimeapi.CheckpointContainerRequest
+	// by default leave containers running
+	options.LeaveRunning = true
+
 	err = request.ReadEntity(&options)
 	if err != nil {
 		response.WriteHeaderAndJson(
