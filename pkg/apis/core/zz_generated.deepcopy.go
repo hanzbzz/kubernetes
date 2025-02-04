@@ -883,6 +883,11 @@ func (in *Container) DeepCopy() *Container {
 func (in *ContainerCheckpointOptions) DeepCopyInto(out *ContainerCheckpointOptions) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
+	if in.LeaveRunning != nil {
+		in, out := &in.LeaveRunning, &out.LeaveRunning
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

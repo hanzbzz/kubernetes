@@ -20945,6 +20945,7 @@ func schema_k8sio_api_core_v1_ContainerCheckpointOptions(ref common.ReferenceCal
 					"leaveRunning": {
 						SchemaProps: spec.SchemaProps{
 							Description: "LeaveRunning indicates if the container should be stopped after the checkpoint",
+							Default:     true,
 							Type:        []string{"boolean"},
 							Format:      "",
 						},

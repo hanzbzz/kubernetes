@@ -902,6 +902,7 @@ message ContainerCheckpointOptions {
 
   // LeaveRunning indicates if the container should be stopped after the checkpoint
   // +optional
+  // +default=true
   optional bool leaveRunning = 3;
 
   // Encrypt the checkpoint

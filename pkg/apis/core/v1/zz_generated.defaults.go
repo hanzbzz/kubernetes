@@ -32,6 +32,9 @@ import (
 func RegisterDefaults(scheme *runtime.Scheme) error {
 	scheme.AddTypeDefaultingFunc(&v1.ConfigMap{}, func(obj interface{}) { SetObjectDefaults_ConfigMap(obj.(*v1.ConfigMap)) })
 	scheme.AddTypeDefaultingFunc(&v1.ConfigMapList{}, func(obj interface{}) { SetObjectDefaults_ConfigMapList(obj.(*v1.ConfigMapList)) })
+	scheme.AddTypeDefaultingFunc(&v1.ContainerCheckpointOptions{}, func(obj interface{}) {
+		SetObjectDefaults_ContainerCheckpointOptions(obj.(*v1.ContainerCheckpointOptions))
+	})
 	scheme.AddTypeDefaultingFunc(&v1.Endpoints{}, func(obj interface{}) { SetObjectDefaults_Endpoints(obj.(*v1.Endpoints)) })
 	scheme.AddTypeDefaultingFunc(&v1.EndpointsList{}, func(obj interface{}) { SetObjectDefaults_EndpointsList(obj.(*v1.EndpointsList)) })
 	scheme.AddTypeDefaultingFunc(&v1.LimitRange{}, func(obj interface{}) { SetObjectDefaults_LimitRange(obj.(*v1.LimitRange)) })
@@ -72,6 +75,13 @@ func SetObjectDefaults_ConfigMapList(in *v1.ConfigMapList) {
 	for i := range in.Items {
 		a := &in.Items[i]
 		SetObjectDefaults_ConfigMap(a)
+	}
+}
+
+func SetObjectDefaults_ContainerCheckpointOptions(in *v1.ContainerCheckpointOptions) {
+	if in.LeaveRunning == nil {
+		var ptrVar1 bool = true
+		in.LeaveRunning = &ptrVar1
 	}
 }
 
