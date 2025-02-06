@@ -912,7 +912,7 @@ func CheckpointLocation(
 	nodeName := types.NodeName(pod.Spec.NodeName)
 	if len(nodeName) == 0 {
 		// If pod has not been assigned a host, return an empty location
-		return nil, nil, container, nil
+		return nil, nil, container, errors.NewServiceUnavailable("Pod not assigned to host yet")
 	}
 	nodeInfo, err := connInfo.GetConnectionInfo(ctx, nodeName)
 	if err != nil {
