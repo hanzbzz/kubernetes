@@ -7803,5 +7803,12 @@ type ContainerCheckpointOptions struct {
 	// +default=true
 	LeaveRunning *bool `json:"leaveRunning,omitempty" protobuf:"varint,3,opt,name=leaveRunning"`
 	// Encrypt the checkpoint
+	// +optional
 	Encrypt bool `json:"encrypt,omitempty" protobuf:"varint,4,opt,name=encrypt"`
+	// The TLS secret to use to encrypt the checkpoint
+	// +optional
+	EncryptionSecret string `json:"encryptionSecret,omitempty" protobuf:"bytes,5,opt,name=encryptionSecret"`
+	// Contents of the TLS certificates
+	// +optional
+	EncryptionCert string `json:"encryptionCert,omitempty" protobuf:"bytes,6,opt,name=encryptionCert"`
 }

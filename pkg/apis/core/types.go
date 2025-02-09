@@ -6640,6 +6640,12 @@ type ContainerCheckpointOptions struct {
 	// Encrypt the checkpoint
 	// +optional
 	Encrypt bool
+	// The TLS secret to use to encrypt the checkpoint
+	// +optional
+	EncryptionSecret string
+	// Contents of the TLS certificate
+	// +optional
+	EncryptionCert string
 }
 
 type ContainerCheckpointResponse struct {
