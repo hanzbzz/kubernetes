@@ -1855,9 +1855,9 @@ message CheckpointContainerRequest {
     // Encrypt the checkpoint
     bool encrypt =5;
     // The TLS secret to use to encrypt the checkpoint
-    string EncryptionSecret = 6;
+    string encryptionSecret = 6;
     // Contents of the TLS cert to use for encryption
-    string EncryptionCert = 7;
+    string encryptionCert = 7;
 }
 
 message CheckpointContainerResponse {}
