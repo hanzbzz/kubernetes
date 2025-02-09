@@ -906,7 +906,16 @@ message ContainerCheckpointOptions {
   optional bool leaveRunning = 3;
 
   // Encrypt the checkpoint
+  // +optional
   optional bool encrypt = 4;
+
+  // The TLS secret to use to encrypt the checkpoint
+  // +optional
+  optional string encryptionSecret = 5;
+
+  // Contents of the TLS certificates
+  // +optional
+  optional string encryptionCert = 6;
 }
 
 // Describe a container image

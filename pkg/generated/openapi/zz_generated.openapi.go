@@ -20957,6 +20957,20 @@ func schema_k8sio_api_core_v1_ContainerCheckpointOptions(ref common.ReferenceCal
 							Format:      "",
 						},
 					},
+					"encryptionSecret": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The TLS secret to use to encrypt the checkpoint",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"encryptionCert": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Contents of the TLS certificates",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 				},
 				Required: []string{"container"},
 			},

@@ -381,11 +381,13 @@ func (Container) SwaggerDoc() map[string]string {
 }
 
 var map_ContainerCheckpointOptions = map[string]string{
-	"":             "ContainerCheckpointOptions is the query options to a Pod's checkpoint call",
-	"container":    "Container that should be checkpointed",
-	"timeout":      "Timeout in seconds for the checkpoint to complete. Timeout of zero means to use the CRI default. Timeout > 0 means to use the user specified timeout.",
-	"leaveRunning": "LeaveRunning indicates if the container should be stopped after the checkpoint",
-	"encrypt":      "Encrypt the checkpoint",
+	"":                 "ContainerCheckpointOptions is the query options to a Pod's checkpoint call",
+	"container":        "Container that should be checkpointed",
+	"timeout":          "Timeout in seconds for the checkpoint to complete. Timeout of zero means to use the CRI default. Timeout > 0 means to use the user specified timeout.",
+	"leaveRunning":     "LeaveRunning indicates if the container should be stopped after the checkpoint",
+	"encrypt":          "Encrypt the checkpoint",
+	"encryptionSecret": "The TLS secret to use to encrypt the checkpoint",
+	"encryptionCert":   "Contents of the TLS certificates",
 }
 
 func (ContainerCheckpointOptions) SwaggerDoc() map[string]string {
