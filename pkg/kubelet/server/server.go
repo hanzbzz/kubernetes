@@ -40,11 +40,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/emicklei/go-restful/otelrestful"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
-	"k8s.io/klog/v2"
-	"k8s.io/kubernetes/pkg/kubelet/metrics/collectors"
-	"k8s.io/utils/clock"
-	netutils "k8s.io/utils/net"
-
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -68,6 +63,7 @@ import (
 	"k8s.io/component-base/metrics/prometheus/slis"
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1"
 	"k8s.io/cri-client/pkg/util"
+	"k8s.io/klog/v2"
 	podresourcesapi "k8s.io/kubelet/pkg/apis/podresources/v1"
 	podresourcesapiv1alpha1 "k8s.io/kubelet/pkg/apis/podresources/v1alpha1"
 	"k8s.io/kubelet/pkg/cri/streaming"
@@ -82,9 +78,12 @@ import (
 	apisgrpc "k8s.io/kubernetes/pkg/kubelet/apis/grpc"
 	"k8s.io/kubernetes/pkg/kubelet/apis/podresources"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
+	"k8s.io/kubernetes/pkg/kubelet/metrics/collectors"
 	"k8s.io/kubernetes/pkg/kubelet/prober"
 	servermetrics "k8s.io/kubernetes/pkg/kubelet/server/metrics"
 	"k8s.io/kubernetes/pkg/kubelet/server/stats"
+	"k8s.io/utils/clock"
+	netutils "k8s.io/utils/net"
 )
 
 func init() {

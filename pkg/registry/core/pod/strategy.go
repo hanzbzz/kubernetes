@@ -896,10 +896,10 @@ func CheckpointLocation(
 	connInfo client.ConnectionInfoGetter,
 	name string,
 	opts *api.ContainerCheckpointOptions,
-) (*url.URL, http.RoundTripper, string, error) {
+) (*url.URL, http.RoundTripper, string, string, error) {
 	pod, err := getPod(ctx, getter, name)
 	if err != nil {
-		return nil, nil, "", err
+		return nil, nil, "", "", err
 	}
 	// Try to figure out a container
 	// If a container was provided, it must be valid
@@ -907,16 +907,16 @@ func CheckpointLocation(
 	// if pod has only 1 container, the post request argument is ignored
 	container, err = validateContainer(container, pod)
 	if err != nil {
-		return nil, nil, "", err
+		return nil, nil, "", "", err
 	}
 	nodeName := types.NodeName(pod.Spec.NodeName)
 	if len(nodeName) == 0 {
 		// If pod has not been assigned a host, return an empty location
-		return nil, nil, container, errors.NewServiceUnavailable("Pod not assigned to host yet")
+		return nil, nil, container, "", errors.NewServiceUnavailable("Pod not assigned to host yet")
 	}
 	nodeInfo, err := connInfo.GetConnectionInfo(ctx, nodeName)
 	if err != nil {
-		return nil, nil, container, err
+		return nil, nil, container, "", err
 	}
 	// create path
 	path := fmt.Sprintf("/checkpoint/%s/%s/%s", pod.Namespace, pod.Name, container)
@@ -925,6 +925,6 @@ func CheckpointLocation(
 		Host:   net.JoinHostPort(nodeInfo.Hostname, nodeInfo.Port),
 		Path:   path,
 	}
-	return loc, nodeInfo.Transport, container, nil
+	return loc, nodeInfo.Transport, container, pod.Namespace, nil
 
 }

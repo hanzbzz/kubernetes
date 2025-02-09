@@ -20,10 +20,13 @@ import (
 	"fmt"
 	"net/http"
 
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
 	"k8s.io/apiserver/pkg/registry/rest"
+	"k8s.io/client-go/kubernetes"
+	clientRest "k8s.io/client-go/rest"
 	api "k8s.io/kubernetes/pkg/apis/core"
 	"k8s.io/kubernetes/pkg/kubelet/client"
 	"k8s.io/kubernetes/pkg/registry/core/pod"
@@ -52,16 +55,65 @@ func (r *CheckpointREST) Destroy() {
 	// we don't destroy it here explicitly.
 }
 
+// get secret via API
+func getSecret(namespace string, name string) (*v1.Secret, error) {
+	config := clientRest.Config{
+		Host: "https://127.0.0.1:6443",
+		TLSClientConfig: clientRest.TLSClientConfig{
+			Insecure: false,
+			CertFile: "/etc/kubernetes/pki/apiserver-kubelet-client.crt",
+			KeyFile:  "/etc/kubernetes/pki/apiserver-kubelet-client.key",
+			CAFile:   "/etc/kubernetes/pki/ca.crt",
+		},
+	}
+	kubeClient, err := kubernetes.NewForConfig(&config)
+	if err != nil {
+		return nil, err
+	}
+	secret, err := kubeClient.CoreV1().Secrets(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return secret, nil
+}
+
 func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
 	opts := obj.(*api.ContainerCheckpointOptions)
 	if opts.LeaveRunning == nil {
 		defaultTrue := true
 		opts.LeaveRunning = &defaultTrue
 	}
-	location, transport, container, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, opts)
+	location, transport, container, namespace, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, opts)
 	if err != nil {
 		return nil, err
 	}
+
+	if opts.Encrypt {
+		if opts.EncryptionSecret == "" {
+			return &metav1.Status{
+				Status:  metav1.StatusFailure,
+				Message: "encryptionSecret must be provided",
+				Code:    http.StatusBadRequest,
+			}, nil
+		}
+		secret, err := getSecret(namespace, opts.EncryptionSecret)
+		if err != nil {
+			return &metav1.Status{
+				Status:  metav1.StatusFailure,
+				Message: fmt.Sprintf("encryptionSecret %v not found in namespace %v", opts.EncryptionSecret, namespace),
+				Code:    http.StatusNotFound,
+			}, nil
+		}
+		if secret.Type != v1.SecretTypeTLS {
+			return &metav1.Status{
+				Status:  metav1.StatusFailure,
+				Message: fmt.Sprintf("encryptionSecret expected type: TLS, got: %v", secret.Type),
+				Code:    http.StatusBadRequest,
+			}, nil
+		}
+		opts.EncryptionCert = string(secret.Data["tls.crt"])
+	}
+
 	// Marshal the object into JSON
 	jsonData, err := json.Marshal(opts)
 	if err != nil {
