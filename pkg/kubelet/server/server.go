@@ -1016,6 +1016,26 @@ func (s *Server) checkpoint(request *restful.Request, response *restful.Response
 		return
 	}
 
+	if options.Encrypt {
+		// the incoming request has contents of cert as its value
+		// save this to a file
+		certFilename := fmt.Sprintf("/tmp/checkpoint-%v-%v-%v.crt", pod.Namespace, pod.Name, containerName)
+		file, err := os.Create(certFilename)
+		if err != nil {
+			response.WriteHeaderAndJson(
+				http.StatusInternalServerError,
+				map[string]string{"message": fmt.Sprintf("checkpoint failed (%v)", err)},
+				restful.MIME_JSON,
+			)
+			return
+		}
+		defer file.Close()
+		// remove the file once this function completes
+		defer os.Remove(certFilename)
+		file.WriteString(options.EncryptionCert)
+		// set EncryptionCert to path to cert
+		options.EncryptionCert = certFilename
+	}
 	if err := s.host.CheckpointContainer(ctx, pod.UID, kubecontainer.GetPodFullName(pod), containerName, &options); err != nil {
 		response.WriteHeaderAndJson(
 			http.StatusInternalServerError,
