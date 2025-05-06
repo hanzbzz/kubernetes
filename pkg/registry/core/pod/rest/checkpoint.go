@@ -100,7 +100,7 @@ func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Ob
 		if err != nil {
 			return &metav1.Status{
 				Status:  metav1.StatusFailure,
-				Message: fmt.Sprintf("encryptionSecret %v not found in namespace %v", opts.EncryptionSecret, namespace),
+				Message: fmt.Sprintf("Error while trying to get secret %v: %v", opts.EncryptionSecret, err.Error()),
 				Code:    http.StatusNotFound,
 			}, nil
 		}

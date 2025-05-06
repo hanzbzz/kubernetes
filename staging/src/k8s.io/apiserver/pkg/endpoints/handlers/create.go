@@ -28,6 +28,9 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
+	"encoding/json"
+	"io"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metainternalversionscheme "k8s.io/apimachinery/pkg/apis/meta/internalversion/scheme"
@@ -75,7 +78,35 @@ func createHandler(r rest.NamedCreater, scope *RequestScope, admit admission.Int
 
 		// enforce a timeout of at most requestTimeoutUpperBound (34s) or less if the user-provided
 		// timeout inside the parent context is lower than requestTimeoutUpperBound.
-		ctx, cancel := context.WithTimeout(ctx, requestTimeoutUpperBound)
+		timeout := requestTimeoutUpperBound
+
+		urlParts := strings.Split(req.URL.String(), "/")
+		last := urlParts[len(urlParts)-1]
+		// request to checkpoint, set timeout to whatever the user asked for
+		if last == "checkpoint" {
+			bodyBytes, err := io.ReadAll(req.Body)
+			if err != nil {
+				scope.err(err, w, req)
+				return
+			}
+			// reading from request.Body will make it empty, so make sure it has the orignal content
+			req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+			var data map[string]any
+			if err := json.Unmarshal(bodyBytes, &data); err != nil {
+				scope.err(err, w, req)
+				return
+			}
+
+			// Check for "timeout" key
+			if reqTimeout, exists := data["timeout"]; exists {
+				if timeoutFloat, ok := reqTimeout.(float64); ok {
+					// update timeout to user provided value
+					timeout = time.Duration(timeoutFloat) * time.Second
+				}
+			}
+		}
+		//set timeout to request
+		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 		outputMediaType, _, err := negotiation.NegotiateOutputMediaType(req, scope.Serializer, scope)
 		if err != nil {
