@@ -23,6 +23,7 @@ import (
 	"net"
 	"net/http"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -48,8 +49,11 @@ func WithTimeoutForNonLongRunningRequests(handler http.Handler, longRunning apir
 			// if this happens, the handler chain isn't setup correctly because there is no request info
 			return req, false, func() {}, apierrors.NewInternalError(fmt.Errorf("no request info found for request during timeout"))
 		}
+		urlParts := strings.Split(req.URL.String(), "/")
+		last := urlParts[len(urlParts)-1]
 
-		if longRunning(req, requestInfo) {
+		if longRunning(req, requestInfo) || last == "checkpoint" {
+			// checkpoint is long running
 			return req, true, nil, nil
 		}
 

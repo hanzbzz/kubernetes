@@ -81,9 +81,9 @@ func createHandler(r rest.NamedCreater, scope *RequestScope, admit admission.Int
 		timeout := requestTimeoutUpperBound
 
 		urlParts := strings.Split(req.URL.String(), "/")
-		last := urlParts[len(urlParts)-1]
+		lastUrlPart := urlParts[len(urlParts)-1]
 		// request to checkpoint, set timeout to whatever the user asked for
-		if last == "checkpoint" {
+		if lastUrlPart == "checkpoint" {
 			bodyBytes, err := io.ReadAll(req.Body)
 			if err != nil {
 				scope.err(err, w, req)
@@ -105,7 +105,9 @@ func createHandler(r rest.NamedCreater, scope *RequestScope, admit admission.Int
 				}
 			}
 		}
-		//set timeout to request
+		// remove cancels from parent context
+		ctx = context.WithoutCancel(ctx)
+		// set timeout to context
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 		outputMediaType, _, err := negotiation.NegotiateOutputMediaType(req, scope.Serializer, scope)
@@ -247,13 +249,13 @@ func createHandler(r rest.NamedCreater, scope *RequestScope, admit admission.Int
 			}
 			return result, err
 		})
+
 		if err != nil {
 			span.AddEvent("Write to database call failed", attribute.Int("len", len(body)), attribute.String("err", err.Error()))
 			scope.err(err, w, req)
 			return
 		}
 		span.AddEvent("Write to database call succeeded", attribute.Int("len", len(body)))
-
 		code := http.StatusCreated
 		status, ok := result.(*metav1.Status)
 		if ok && status.Code == 0 {
