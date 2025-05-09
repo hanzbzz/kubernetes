@@ -84,6 +84,8 @@ func createHandler(r rest.NamedCreater, scope *RequestScope, admit admission.Int
 		lastUrlPart := urlParts[len(urlParts)-1]
 		// request to checkpoint, set timeout to whatever the user asked for
 		if lastUrlPart == "checkpoint" {
+			// remove cancels from parent context
+			ctx = context.WithoutCancel(ctx)
 			bodyBytes, err := io.ReadAll(req.Body)
 			if err != nil {
 				scope.err(err, w, req)
@@ -105,8 +107,7 @@ func createHandler(r rest.NamedCreater, scope *RequestScope, admit admission.Int
 				}
 			}
 		}
-		// remove cancels from parent context
-		ctx = context.WithoutCancel(ctx)
+
 		// set timeout to context
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
