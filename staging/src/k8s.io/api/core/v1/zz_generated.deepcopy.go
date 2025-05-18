@@ -888,6 +888,11 @@ func (in *ContainerCheckpointOptions) DeepCopyInto(out *ContainerCheckpointOptio
 		*out = new(bool)
 		**out = **in
 	}
+	if in.Encrypt != nil {
+		in, out := &in.Encrypt, &out.Encrypt
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

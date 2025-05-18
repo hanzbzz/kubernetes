@@ -3230,7 +3230,7 @@ func autoConvert_v1_ContainerCheckpointOptions_To_core_ContainerCheckpointOption
 	out.Container = in.Container
 	out.Timeout = in.Timeout
 	out.LeaveRunning = (*bool)(unsafe.Pointer(in.LeaveRunning))
-	out.Encrypt = in.Encrypt
+	out.Encrypt = (*bool)(unsafe.Pointer(in.Encrypt))
 	out.EncryptionSecret = in.EncryptionSecret
 	out.EncryptionCert = in.EncryptionCert
 	return nil
@@ -3245,7 +3245,7 @@ func autoConvert_core_ContainerCheckpointOptions_To_v1_ContainerCheckpointOption
 	out.Container = in.Container
 	out.Timeout = in.Timeout
 	out.LeaveRunning = (*bool)(unsafe.Pointer(in.LeaveRunning))
-	out.Encrypt = in.Encrypt
+	out.Encrypt = (*bool)(unsafe.Pointer(in.Encrypt))
 	out.EncryptionSecret = in.EncryptionSecret
 	out.EncryptionCert = in.EncryptionCert
 	return nil
@@ -3281,11 +3281,11 @@ func autoConvert_url_Values_To_v1_ContainerCheckpointOptions(in *url.Values, out
 		out.LeaveRunning = nil
 	}
 	if values, ok := map[string][]string(*in)["encrypt"]; ok && len(values) > 0 {
-		if err := runtime.Convert_Slice_string_To_bool(&values, &out.Encrypt, s); err != nil {
+		if err := runtime.Convert_Slice_string_To_Pointer_bool(&values, &out.Encrypt, s); err != nil {
 			return err
 		}
 	} else {
-		out.Encrypt = false
+		out.Encrypt = nil
 	}
 	if values, ok := map[string][]string(*in)["encryptionSecret"]; ok && len(values) > 0 {
 		if err := runtime.Convert_Slice_string_To_string(&values, &out.EncryptionSecret, s); err != nil {
