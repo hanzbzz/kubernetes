@@ -6639,7 +6639,7 @@ type ContainerCheckpointOptions struct {
 	LeaveRunning *bool
 	// Encrypt the checkpoint
 	// +optional
-	Encrypt bool
+	Encrypt *bool
 	// The TLS secret to use to encrypt the checkpoint
 	// +optional
 	EncryptionSecret string

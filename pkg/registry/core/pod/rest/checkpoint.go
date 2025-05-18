@@ -83,12 +83,16 @@ func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Ob
 		defaultTrue := true
 		opts.LeaveRunning = &defaultTrue
 	}
+	if opts.Encrypt == nil {
+		defaultTrue := true
+		opts.Encrypt = &defaultTrue
+	}
 	location, transport, container, namespace, err := pod.CheckpointLocation(ctx, r.Store, r.KubeletConn, name, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	if opts.Encrypt {
+	if *opts.Encrypt {
 		if opts.EncryptionSecret == "" {
 			return &metav1.Status{
 				Status:  metav1.StatusFailure,
