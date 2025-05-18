@@ -43,6 +43,7 @@ import (
 	printerstorage "k8s.io/kubernetes/pkg/printers/storage"
 	registrypod "k8s.io/kubernetes/pkg/registry/core/pod"
 	podrest "k8s.io/kubernetes/pkg/registry/core/pod/rest"
+	registrysecret "k8s.io/kubernetes/pkg/registry/core/secret"
 	"sigs.k8s.io/structured-merge-diff/v4/fieldpath"
 )
 
@@ -86,6 +87,28 @@ func NewStorage(optsGetter generic.RESTOptionsGetter, k client.ConnectionInfoGet
 
 		TableConvertor: printerstorage.TableConvertor{TableGenerator: printers.NewTableGenerator().With(printersinternal.AddHandlers)},
 	}
+
+	secretStore := &genericregistry.Store{
+		NewFunc:                   func() runtime.Object { return &api.Secret{} },
+		NewListFunc:               func() runtime.Object { return &api.SecretList{} },
+		PredicateFunc:             registrysecret.Matcher,
+		DefaultQualifiedResource:  api.Resource("secrets"),
+		SingularQualifiedResource: api.Resource("secret"),
+
+		CreateStrategy: registrysecret.Strategy,
+		UpdateStrategy: registrysecret.Strategy,
+		DeleteStrategy: registrysecret.Strategy,
+		TableConvertor: printerstorage.TableConvertor{TableGenerator: printers.NewTableGenerator().With(printersinternal.AddHandlers)},
+	}
+
+	secretStoreOptions := &generic.StoreOptions{
+		RESTOptions: optsGetter,
+		AttrFunc:    registrysecret.GetAttrs,
+	}
+	if err := secretStore.CompleteWithOptions(secretStoreOptions); err != nil {
+		return PodStorage{}, err
+	}
+
 	options := &generic.StoreOptions{
 		RESTOptions: optsGetter,
 		AttrFunc:    registrypod.GetAttrs,
@@ -115,7 +138,7 @@ func NewStorage(optsGetter generic.RESTOptionsGetter, k client.ConnectionInfoGet
 		Exec:                &podrest.ExecREST{Store: store, KubeletConn: k},
 		Attach:              &podrest.AttachREST{Store: store, KubeletConn: k},
 		PortForward:         &podrest.PortForwardREST{Store: store, KubeletConn: k},
-		Checkpoint:          &podrest.CheckpointREST{Store: store, KubeletConn: k},
+		Checkpoint:          &podrest.CheckpointREST{Store: store, KubeletConn: k, SecretStore: secretStore},
 	}, nil
 }
 

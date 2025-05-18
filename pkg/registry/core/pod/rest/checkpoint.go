@@ -20,13 +20,10 @@ import (
 	"fmt"
 	"net/http"
 
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	genericregistry "k8s.io/apiserver/pkg/registry/generic/registry"
 	"k8s.io/apiserver/pkg/registry/rest"
-	"k8s.io/client-go/kubernetes"
-	clientRest "k8s.io/client-go/rest"
 	api "k8s.io/kubernetes/pkg/apis/core"
 	"k8s.io/kubernetes/pkg/kubelet/client"
 	"k8s.io/kubernetes/pkg/registry/core/pod"
@@ -39,6 +36,7 @@ import (
 type CheckpointREST struct {
 	Store       *genericregistry.Store
 	KubeletConn client.ConnectionInfoGetter
+	SecretStore *genericregistry.Store
 }
 
 // Implement Connecter
@@ -53,28 +51,6 @@ func (r *CheckpointREST) New() runtime.Object {
 func (r *CheckpointREST) Destroy() {
 	// Given that underlying store is shared with REST,
 	// we don't destroy it here explicitly.
-}
-
-// get secret via API
-func getSecret(namespace string, name string) (*v1.Secret, error) {
-	config := clientRest.Config{
-		Host: "https://127.0.0.1:6443",
-		TLSClientConfig: clientRest.TLSClientConfig{
-			Insecure: false,
-			CertFile: "/etc/kubernetes/pki/apiserver-kubelet-client.crt",
-			KeyFile:  "/etc/kubernetes/pki/apiserver-kubelet-client.key",
-			CAFile:   "/etc/kubernetes/pki/ca.crt",
-		},
-	}
-	kubeClient, err := kubernetes.NewForConfig(&config)
-	if err != nil {
-		return nil, err
-	}
-	secret, err := kubeClient.CoreV1().Secrets(namespace).Get(context.TODO(), name, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	return secret, nil
 }
 
 func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
@@ -100,15 +76,23 @@ func (r *CheckpointREST) Create(ctx context.Context, name string, obj runtime.Ob
 				Code:    http.StatusBadRequest,
 			}, nil
 		}
-		secret, err := getSecret(namespace, opts.EncryptionSecret)
+		secretObj, err := r.SecretStore.Get(ctx, opts.EncryptionSecret, &metav1.GetOptions{})
 		if err != nil {
 			return &metav1.Status{
 				Status:  metav1.StatusFailure,
-				Message: fmt.Sprintf("Error while trying to get secret %v: %v", opts.EncryptionSecret, err.Error()),
+				Message: fmt.Sprintf("Secret %v not found", opts.EncryptionSecret),
 				Code:    http.StatusNotFound,
 			}, nil
 		}
-		if secret.Type != v1.SecretTypeTLS {
+		secret := secretObj.(*api.Secret)
+		if secret.Namespace != namespace {
+			return &metav1.Status{
+				Status:  metav1.StatusFailure,
+				Message: "Pod and encryptionSecret are in different namespaces",
+				Code:    http.StatusBadRequest,
+			}, nil
+		}
+		if secret.Type != api.SecretTypeTLS {
 			return &metav1.Status{
 				Status:  metav1.StatusFailure,
 				Message: fmt.Sprintf("encryptionSecret expected type: TLS, got: %v", secret.Type),
